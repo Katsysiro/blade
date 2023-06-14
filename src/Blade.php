@@ -3,8 +3,8 @@
 namespace Jenssegers\Blade;
 
 use Illuminate\Container\Container;
-use Jenssegers\Blade\Application;
 use Illuminate\Contracts\Container\Container as ContainerInterface;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory as FactoryContract;
 use Illuminate\Contracts\View\View;
 use Illuminate\Events\Dispatcher;
@@ -32,7 +32,7 @@ class Blade implements FactoryContract
 
     public function __construct($viewPaths, string $cachePath, ContainerInterface $container = null)
     {
-        $this->container = $container ?: new Application;
+        $this->container = $container ?: new Container;
 
         $this->setupContainer((array) $viewPaths, $cachePath);
         (new ViewServiceProvider($this->container))->register();
@@ -59,16 +59,6 @@ class Blade implements FactoryContract
     public function directive(string $name, callable $handler)
     {
         $this->compiler->directive($name, $handler);
-    }
-
-    public function component($class, $alias = null, $prefix = '')
-    {
-        if (!is_null($alias)) {
-            if (!class_exists($alias)) {
-                throw new \RuntimeException("Class $alias not exists");
-            }
-        }
-        $this->compiler->component($class, $alias, $prefix);
     }
     
     public function if($name, callable $callback)
@@ -131,10 +121,10 @@ class Blade implements FactoryContract
         }, true);
 
         $this->container->bindIf('config', function () use ($viewPaths, $cachePath) {
-            return new Config([
+            return [
                 'view.paths' => $viewPaths,
                 'view.compiled' => $cachePath,
-            ]);
+            ];
         }, true);
         
         Facade::setFacadeApplication($this->container);
